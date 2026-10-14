@@ -98,6 +98,7 @@ export const FaqSection: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<'all' | 'reconciliation' | 'licenses' | 'commercial' | 'fees_tracking'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaqId, setOpenFaqId] = useState<string | null>('faq-rec-1');
+  const [showAllFaqs, setShowAllFaqs] = useState(false);
 
   const categories = [
     { id: 'all', label: 'جميع الأسئلة' },
@@ -118,6 +119,11 @@ export const FaqSection: React.FC = () => {
       return matchesCat && matchesQuery;
     });
   }, [activeCategory, searchQuery]);
+
+  // Show only first 3 questions by default unless expanded or searching
+  const displayedFaqs = (showAllFaqs || searchQuery.trim().length > 0) 
+    ? filteredFaqs 
+    : filteredFaqs.slice(0, 3);
 
   const toggleFaq = (id: string) => {
     setOpenFaqId(prev => prev === id ? null : id);
@@ -185,14 +191,14 @@ export const FaqSection: React.FC = () => {
           ))}
         </div>
 
-        {/* قائمة الأكورديون للأسئلة */}
+        {/* قائمة الأكورديون للأسئلة (تظهر أول 3 أسئلة فقط افتراضياً) */}
         <div className="space-y-3">
-          {filteredFaqs.length === 0 ? (
+          {displayedFaqs.length === 0 ? (
             <div className="p-8 text-center text-xs text-stone-500 bg-[#12141D] rounded-2xl border border-white/5">
               لم نجد نتائج مطابقة لبحثك "{searchQuery}". يمكنك التواصل مباشرة عبر الواتساب للاستفسار.
             </div>
           ) : (
-            filteredFaqs.map((faq) => {
+            displayedFaqs.map((faq) => {
               const isOpen = openFaqId === faq.id;
 
               return (
@@ -235,6 +241,19 @@ export const FaqSection: React.FC = () => {
             })
           )}
         </div>
+
+        {/* زر التوسيع والإخفاء (عرض باقي الأسئلة بسهم تفاعلي) */}
+        {filteredFaqs.length > 3 && !searchQuery.trim() && (
+          <div className="pt-4 text-center">
+            <button
+              onClick={() => setShowAllFaqs(!showAllFaqs)}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#14161E] hover:bg-[#1A1D27] text-[#EAA044] border border-[#EAA044]/40 hover:border-[#EAA044] text-xs sm:text-sm font-bold transition-all shadow-lg active:scale-95 group"
+            >
+              <span>{showAllFaqs ? 'عرض أول 3 أسئلة فقط (طي باقي الأسئلة)' : `عرض جميع الأسئلة الشائعة (${filteredFaqs.length - 3} أسئلة إضافية)`}</span>
+              <ChevronDown className={`w-4 h-4 transition-transform duration-300 group-hover:scale-110 ${showAllFaqs ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+        )}
 
         {/* شريط المساعدة الإضافية */}
         <div className="mt-10 p-5 rounded-2xl bg-gradient-to-r from-[#14161E] to-[#181B26] border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
